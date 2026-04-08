@@ -1,4 +1,5 @@
 import { ipcMain, dialog } from 'electron'
+import * as fs from 'fs'
 import { GCodeAnalyzer } from '../print/GCodeAnalyzer'
 
 export function registerFilesIPC(): void {
@@ -19,5 +20,10 @@ export function registerFilesIPC(): void {
 
   ipcMain.handle('files:analyze-gcode', async (_event, filePath: string) => {
     return analyzer.analyze(filePath)
+  })
+
+  ipcMain.handle('files:read-gcode', async (_event, filePath: string) => {
+    const content = fs.readFileSync(filePath, 'utf-8')
+    return content.split('\n')
   })
 }

@@ -138,6 +138,7 @@ interface ElectronAPI {
   files: {
     openDialog(): Promise<string | null>
     analyzeGCode(filePath: string): Promise<GCodeAnalysis>
+    readGCode(filePath: string): Promise<string[]>
   }
   settings: {
     get(): Promise<AppSettings>

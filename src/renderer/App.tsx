@@ -1,8 +1,11 @@
 import React from 'react'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import { PrinterProvider } from './context/PrinterContext'
+import { ErrorBoundary } from './components/shared/ErrorBoundary'
+import { ToastProvider } from './components/shared/ToastProvider'
 import { Sidebar } from './components/layout/Sidebar'
 import { ResumeDialog } from './components/print/ResumeDialog'
+import { KeyboardShortcuts } from './components/shared/KeyboardShortcuts'
 import { DashboardPage } from './pages/DashboardPage'
 import { ControlsPage } from './pages/ControlsPage'
 import { FileBrowserPage } from './pages/FileBrowserPage'
@@ -13,22 +16,27 @@ import { SettingsPage } from './pages/SettingsPage'
 
 export function App() {
   return (
-    <HashRouter>
-      <PrinterProvider>
-        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-          <Sidebar />
-          <Routes>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/controls" element={<ControlsPage />} />
-            <Route path="/files" element={<FileBrowserPage />} />
-            <Route path="/leveling" element={<LevelingPage />} />
-            <Route path="/terminal" element={<TerminalPage />} />
-            <Route path="/history" element={<HistoryPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Routes>
-        </div>
-        <ResumeDialog />
-      </PrinterProvider>
-    </HashRouter>
+    <ErrorBoundary>
+      <HashRouter>
+        <PrinterProvider>
+          <ToastProvider>
+            <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+              <Sidebar />
+              <Routes>
+                <Route path="/" element={<DashboardPage />} />
+                <Route path="/controls" element={<ControlsPage />} />
+                <Route path="/files" element={<FileBrowserPage />} />
+                <Route path="/leveling" element={<LevelingPage />} />
+                <Route path="/terminal" element={<TerminalPage />} />
+                <Route path="/history" element={<HistoryPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+              </Routes>
+            </div>
+            <ResumeDialog />
+            <KeyboardShortcuts />
+          </ToastProvider>
+        </PrinterProvider>
+      </HashRouter>
+    </ErrorBoundary>
   )
 }

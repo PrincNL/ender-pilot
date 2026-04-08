@@ -52,6 +52,7 @@ contextBridge.exposeInMainWorld('api', {
   files: {
     openDialog: () => ipcRenderer.invoke('files:open-dialog'),
     analyzeGCode: (filePath: string) => ipcRenderer.invoke('files:analyze-gcode', filePath),
+    readGCode: (filePath: string) => ipcRenderer.invoke('files:read-gcode', filePath),
   },
   settings: {
     get: () => ipcRenderer.invoke('settings:get'),

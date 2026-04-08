@@ -11,6 +11,10 @@ export class SerialManager extends EventEmitter {
   private status: ConnectionStatus = 'disconnected'
   private tempPollTimer: ReturnType<typeof setInterval> | null = null
   private tempPollInterval = 2000
+  private lastPortPath = ''
+  private lastBaudRate = 115200
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null
+  private autoReconnect = true
 
   constructor() {
     super()
@@ -50,7 +54,10 @@ export class SerialManager extends EventEmitter {
       await this.disconnect()
     }
 
+    this.lastPortPath = portPath
+    this.lastBaudRate = baudRate
     this.setStatus('connecting')
+    this.stopReconnectTimer()
 
     return new Promise((resolve, reject) => {
       this.port = new SerialPort({
@@ -70,6 +77,7 @@ export class SerialManager extends EventEmitter {
       this.port.on('close', () => {
         this.setStatus('disconnected')
         this.stopTempPolling()
+        this.tryAutoReconnect()
       })
 
       this.port.on('error', (err) => {
@@ -175,5 +183,35 @@ export class SerialManager extends EventEmitter {
 
   isConnected(): boolean {
     return this.status === 'connected' && !!this.port?.isOpen
+  }
+
+  setAutoReconnect(enabled: boolean): void {
+    this.autoReconnect = enabled
+    if (!enabled) this.stopReconnectTimer()
+  }
+
+  private tryAutoReconnect(): void {
+    if (!this.autoReconnect || !this.lastPortPath) return
+    this.stopReconnectTimer()
+
+    this.emit('message', 'Connection lost. Attempting to reconnect in 5 seconds...')
+
+    this.reconnectTimer = setTimeout(async () => {
+      if (this.status === 'connected') return
+      try {
+        await this.connect(this.lastPortPath, this.lastBaudRate)
+        this.emit('message', 'Reconnected successfully!')
+      } catch {
+        // Try again in 10 seconds
+        this.reconnectTimer = setTimeout(() => this.tryAutoReconnect(), 10000)
+      }
+    }, 5000)
+  }
+
+  private stopReconnectTimer(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer)
+      this.reconnectTimer = null
+    }
   }
 }

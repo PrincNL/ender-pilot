@@ -3,6 +3,7 @@ import { PageLayout } from '../components/layout/PageLayout'
 import { Card } from '../components/shared/Card'
 import { Button } from '../components/shared/Button'
 import { Badge } from '../components/shared/Badge'
+import { GCodePreview } from '../components/files/GCodePreview'
 import { usePrinter } from '../context/PrinterContext'
 import { formatDuration, formatFilament } from '../lib/formatters'
 
@@ -10,6 +11,7 @@ export function FileBrowserPage() {
   const { connectionStatus, printState, startPrint } = usePrinter()
   const [files, setFiles] = useState<GCodeAnalysis[]>([])
   const [selectedFile, setSelectedFile] = useState<GCodeAnalysis | null>(null)
+  const [gcodeLines, setGcodeLines] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [dragOver, setDragOver] = useState(false)
 
@@ -32,6 +34,11 @@ export function FileBrowserPage() {
         return [analysis, ...prev]
       })
       setSelectedFile(analysis)
+      // Load G-code lines for preview
+      if (window.api?.files?.readGCode) {
+        const lines = await window.api.files.readGCode(filePath)
+        setGcodeLines(lines)
+      }
     } catch (err) {
       console.error('Failed to analyze G-code:', err)
     }
@@ -147,6 +154,11 @@ export function FileBrowserPage() {
               ))}
             </div>
           </Card>
+        )}
+
+        {/* G-code Preview */}
+        {selectedFile && gcodeLines.length > 0 && (
+          <GCodePreview lines={gcodeLines} />
         )}
       </div>
     </PageLayout>
